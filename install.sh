@@ -80,30 +80,25 @@ check_memory() {
 install_dependencies() {
     log_step "安装系统依赖..."
     
-    # 检查内存
-    check_memory
+    # 尝试下载并运行简化的依赖安装脚本
+    local simple_deps_url="https://raw.githubusercontent.com/Gundamx682/fantastic/main/simple-deps-install.sh"
+    local temp_script="/tmp/simple-deps-install.sh"
     
-    # 逐个安装依赖，避免内存不足
-    log_info "检查并安装必要的工具..."
-    
-    local packages=("curl" "wget" "jq" "python3" "python3-pip" "systemd" "firewalld")
-    local failed_packages=()
-    
-    for package in "${packages[@]}"; do
-        log_info "检查 $package..."
-        if ! rpm -q "$package" >/dev/null 2>&1; then
-            log_info "安装 $package..."
-            if timeout 300 yum install -y "$package"; then
-                log_info "✓ $package 安装成功"
-            else
-                log_warn "✗ $package 安装失败，跳过..."
-                failed_packages+=("$package")
-            fi
+    if curl -fsSL "$simple_deps_url" -o "$temp_script"; then
+        log_info "使用简化依赖安装脚本..."
+        chmod +x "$temp_script"
+        if bash "$temp_script"; then
+            log_info "✓ 依赖安装成功"
+            rm -f "$temp_script"
+            return 0
         else
-            log_info "✓ $package 已安装"
+            log_warn "简化安装失败，尝试手动安装..."
         fi
-        sleep 1  # 给系统一点时间
-    done
+        rm -f "$temp_script"
+    fi
+    
+    # 手动安装关键依赖
+    log_info "手动安装关键依赖..."
     
     # 检查关键工具
     local critical_missing=()
@@ -114,28 +109,80 @@ install_dependencies() {
     done
     
     if [ ${#critical_missing[@]} -gt 0 ]; then
-        log_error "缺少关键工具: ${critical_missing[*]}"
-        log_error "请手动安装: yum install -y ${critical_missing[*]}"
-        exit 1
-    fi
-    
-    # 尝试升级pip（非关键）
-    if command -v python3 &> /dev/null; then
-        log_info "检查pip..."
-        if python3 -m pip --version &> /dev/null; then
-            log_info "✓ pip 已安装"
-            # 尝试升级pip，但失败不影响安装
-            timeout 120 python3 -m pip install --upgrade pip >/dev/null 2>&1 || log_info "pip升级跳过"
-        else
-            log_warn "pip不可用，某些功能可能受限"
+        log_info "安装关键工具: ${critical_missing[*]}"
+        
+        # 逐个安装，避免内存问题
+        for tool in "${critical_missing[@]}"; do
+            log_info "安装 $tool..."
+            case "$tool" in
+                "curl")
+                    if command -v dnf &> /dev/null; then
+                        dnf install -y curl --setopt=install_weak_deps=False || log_error "curl安装失败"
+                    else
+                        yum install -y curl --setopt=install_weak_deps=False || log_error "curl安装失败"
+                    fi
+                    ;;
+                "python3")
+                    if command -v dnf &> /dev/null; then
+                        dnf install -y python3 --setopt=install_weak_deps=False || log_error "python3安装失败"
+                    else
+                        yum install -y python3 --setopt=install_weak_deps=False || log_error "python3安装失败"
+                    fi
+                    ;;
+                "systemctl")
+                    if command -v dnf &> /dev/null; then
+                        dnf install -y systemd --setopt=install_weak_deps=False || log_error "systemd安装失败"
+                    else
+                        yum install -y systemd --setopt=install_weak_deps=False || log_error "systemd安装失败"
+                    fi
+                    ;;
+            esac
+        done
+        
+        # 再次检查
+        local still_missing=()
+        for tool in "curl" "python3" "systemctl"; do
+            if ! command -v "$tool" &> /dev/null; then
+                still_missing+=("$tool")
+            fi
+        done
+        
+        if [ ${#still_missing[@]} -gt 0 ]; then
+            log_error "关键工具安装失败: ${still_missing[*]}"
+            log_error "请手动安装: yum install -y ${still_missing[*]}"
+            exit 1
         fi
     fi
     
-    if [ ${#failed_packages[@]} -gt 0 ]; then
-        log_warn "以下包安装失败，可能影响某些功能: ${failed_packages[*]}"
+    # 尝试安装可选依赖
+    log_info "检查可选依赖..."
+    local optional=("wget" "jq" "firewalld")
+    for pkg in "${optional[@]}"; do
+        if ! command -v "$pkg" &> /dev/null && ! rpm -q "$pkg" &> /dev/null; then
+            log_info "安装 $pkg..."
+            if command -v dnf &> /dev/null; then
+                dnf install -y "$pkg" --setopt=install_weak_deps=False 2>/dev/null || log_warn "$pkg 安装失败"
+            else
+                yum install -y "$pkg" --setopt=install_weak_deps=False 2>/dev/null || log_warn "$pkg 安装失败"
+            fi
+        else
+            log_info "✓ $pkg 已安装"
+        fi
+    done
+    
+    # 检查pip
+    if ! python3 -m pip --version &> /dev/null; then
+        log_info "安装pip..."
+        if command -v dnf &> /dev/null; then
+            dnf install -y python3-pip --setopt=install_weak_deps=False 2>/dev/null || log_warn "pip安装失败"
+        else
+            yum install -y python3-pip --setopt=install_weak_deps=False 2>/dev/null || log_warn "pip安装失败"
+        fi
+    else
+        log_info "✓ pip 已安装"
     fi
     
-    log_info "系统依赖检查完成"
+    log_info "✓ 系统依赖安装完成"
 }
 
 # 创建目录结构
