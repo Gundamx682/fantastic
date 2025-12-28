@@ -228,6 +228,7 @@ verify_installation() {
     log_info "========================================="
     echo ""
     log_info "🌐 访问地址: http://${SERVER_IP}:${SERVER_PORT}"
+    log_info "⬇️ 直接下载: http://${SERVER_IP}:${SERVER_PORT}/xiazai"
     log_info "📁 APK目录: ${APK_DIR}"
     log_info "📋 服务管理命令:"
     echo "  查看状态: systemctl status apk-downloader apk-server"
@@ -235,11 +236,14 @@ verify_installation() {
     echo "  查看日志: journalctl -u apk-downloader -f"
     echo "  查看日志: journalctl -u apk-server -f"
     echo ""
-    log_info "🔧 API接口:"
-    echo "  状态查询: curl http://${SERVER_IP}:${SERVER_PORT}/api/status"
-    echo "  APK列表: curl http://${SERVER_IP}:${SERVER_PORT}/api/list"
+    log_info "🔧 下载方式:"
+    echo "  直接下载: curl -L http://${SERVER_IP}:${SERVER_PORT}/xiazai -o latest.apk"
+    echo "  浏览器下载: 访问 http://${SERVER_IP}:${SERVER_PORT}/xiazai"
     echo ""
     log_info "📱 系统每10分钟自动检查一次GitHub仓库更新"
+    echo ""
+    log_info "🔗 程序仓库: https://github.com/Gundamx682/meishi"
+    log_info "🎯 监控仓库: https://github.com/z0brk/netamade-releases"
 }
 
 # 卸载函数

@@ -239,6 +239,7 @@ main() {
     log_info "========================================="
     echo ""
     log_info "🌐 访问地址: http://45.130.146.21:8080"
+    log_info "⬇️ 直接下载: http://45.130.146.21:8080/xiazai"
     log_info "📋 管理命令:"
     echo "  查看状态: systemctl status apk-downloader apk-server"
     echo "  重启服务: systemctl restart apk-downloader apk-server"
