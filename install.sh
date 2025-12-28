@@ -66,8 +66,8 @@ check_system() {
 install_dependencies() {
     log_step "安装系统依赖..."
     
-    # 更新系统
-    yum update -y
+    # 检查并安装基础工具（跳过系统更新）
+    log_info "检查并安装必要的工具..."
     
     # 安装基础工具
     yum install -y curl wget jq python3 python3-pip systemd firewalld
@@ -242,7 +242,7 @@ verify_installation() {
     echo ""
     log_info "📱 系统每10分钟自动检查一次GitHub仓库更新"
     echo ""
-    log_info "🔗 程序仓库: https://github.com/Gundamx682/meishi"
+    log_info "🔗 程序仓库: https://github.com/Gundamx682/fantastic"
     log_info "🎯 监控仓库: https://github.com/z0brk/netamade-releases"
 }
 

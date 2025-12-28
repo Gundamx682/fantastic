@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 配置参数
-REPO_URL="https://raw.githubusercontent.com/Gundamx682/meishi/main"
+REPO_URL="https://raw.githubusercontent.com/Gundamx682/fantastic/main"
 TEMP_DIR="/tmp/apk-downloader-$$"
 INSTALL_DIR="/opt/apk-downloader"
 

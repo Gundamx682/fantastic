@@ -23,10 +23,10 @@
 
 ```bash
 # 下载并执行安装脚本
-curl -fsSL https://raw.githubusercontent.com/Gundamx682/meishi/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Gundamx682/fantastic/main/install.sh | sudo bash
 
 # 或者
-curl -L -o install.sh https://raw.githubusercontent.com/Gundamx682/meishi/main/install.sh
+curl -L -o install.sh https://raw.githubusercontent.com/Gundamx682/fantastic/main/install.sh
 chmod +x install.sh
 sudo ./install.sh install
 ```
@@ -35,7 +35,7 @@ sudo ./install.sh install
 
 ```bash
 # 从GitHub直接部署
-curl -fsSL https://raw.githubusercontent.com/Gundamx682/meishi/main/deploy.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Gundamx682/fantastic/main/deploy.sh | sudo bash
 ```
 
 ## 🌐 访问服务
