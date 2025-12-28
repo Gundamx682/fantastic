@@ -1,0 +1,35 @@
+[Unit]
+Description=APK Download HTTP Server
+Documentation=https://github.com/z0brk/netamade-releases
+After=network.target apk-downloader.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/apk-downloader
+ExecStart=/usr/bin/python3 /opt/apk-downloader/apk-server.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=apk-server
+
+# 安全设置
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/apk-downloads /var/log
+
+# 资源限制
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# 网络权限
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

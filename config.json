@@ -1,0 +1,51 @@
+{
+  "repository": {
+    "owner": "z0brk",
+    "name": "netamade-releases",
+    "api_url": "https://api.github.com"
+  },
+  "server": {
+    "ip": "45.130.146.21",
+    "port": 8080,
+    "bind_address": "0.0.0.0"
+  },
+  "download": {
+    "check_interval": 600,
+    "apk_directory": "/var/www/apk-downloads",
+    "max_files_keep": 3,
+    "timeout": 300,
+    "retry_count": 3
+  },
+  "logging": {
+    "level": "INFO",
+    "download_log": "/var/log/apk-downloader.log",
+    "server_log": "/var/log/apk-server.log",
+    "max_log_size": "10MB",
+    "backup_count": 5
+  },
+  "security": {
+    "allowed_file_types": [".apk"],
+    "max_file_size": "500MB",
+    "rate_limit": {
+      "enabled": true,
+      "requests_per_minute": 60
+    }
+  },
+  "features": {
+    "auto_cleanup": true,
+    "version_check": true,
+    "backup_old_versions": false,
+    "notification": {
+      "enabled": false,
+      "webhook_url": "",
+      "email": {
+        "enabled": false,
+        "smtp_server": "",
+        "smtp_port": 587,
+        "username": "",
+        "password": "",
+        "recipients": []
+      }
+    }
+  }
+}
