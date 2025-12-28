@@ -201,41 +201,55 @@ deploy_scripts() {
     # 获取脚本所在目录
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
-    # 复制脚本文件
-    if [ -f "$SCRIPT_DIR/apk-downloader.sh" ]; then
-        cp "$SCRIPT_DIR/apk-downloader.sh" "$INSTALL_DIR/"
-        chmod +x "$INSTALL_DIR/apk-downloader.sh"
-        log_info "部署 apk-downloader.sh"
-    else
-        log_error "找不到 apk-downloader.sh 文件"
+    # 尝试从本地复制，如果失败则从GitHub下载
+    deploy_file() {
+        local filename="$1"
+        local dest_dir="$2"
+        local github_url="https://raw.githubusercontent.com/Gundamx682/fantastic/main/$filename"
+        
+        # 尝试从本地复制
+        if [ -f "$SCRIPT_DIR/$filename" ]; then
+            cp "$SCRIPT_DIR/$filename" "$dest_dir/"
+            log_info "部署 $filename (本地)"
+            return 0
+        fi
+        
+        # 从GitHub下载
+        log_info "下载 $filename..."
+        if curl -fsSL --max-time 30 --retry 2 "$github_url" -o "$dest_dir/$filename"; then
+            log_info "部署 $filename (GitHub)"
+            return 0
+        else
+            log_error "部署 $filename 失败"
+            return 1
+        fi
+    }
+    
+    # 部署主脚本文件
+    if ! deploy_file "apk-downloader.sh" "$INSTALL_DIR"; then
+        log_error "无法部署 apk-downloader.sh"
+        exit 1
+    fi
+    chmod +x "$INSTALL_DIR/apk-downloader.sh"
+    
+    if ! deploy_file "apk-server.py" "$INSTALL_DIR"; then
+        log_error "无法部署 apk-server.py"
+        exit 1
+    fi
+    chmod +x "$INSTALL_DIR/apk-server.py"
+    
+    # 部署systemd服务文件
+    if ! deploy_file "apk-downloader.service" "/etc/systemd/system"; then
+        log_error "无法部署 apk-downloader.service"
         exit 1
     fi
     
-    if [ -f "$SCRIPT_DIR/apk-server.py" ]; then
-        cp "$SCRIPT_DIR/apk-server.py" "$INSTALL_DIR/"
-        chmod +x "$INSTALL_DIR/apk-server.py"
-        log_info "部署 apk-server.py"
-    else
-        log_error "找不到 apk-server.py 文件"
+    if ! deploy_file "apk-server.service" "/etc/systemd/system"; then
+        log_error "无法部署 apk-server.service"
         exit 1
     fi
     
-    # 复制systemd服务文件
-    if [ -f "$SCRIPT_DIR/apk-downloader.service" ]; then
-        cp "$SCRIPT_DIR/apk-downloader.service" "/etc/systemd/system/"
-        log_info "部署 apk-downloader.service"
-    else
-        log_error "找不到 apk-downloader.service 文件"
-        exit 1
-    fi
-    
-    if [ -f "$SCRIPT_DIR/apk-server.service" ]; then
-        cp "$SCRIPT_DIR/apk-server.service" "/etc/systemd/system/"
-        log_info "部署 apk-server.service"
-    else
-        log_error "找不到 apk-server.service 文件"
-        exit 1
-    fi
+    log_info "所有脚本文件部署完成"
 }
 
 # 配置防火墙
